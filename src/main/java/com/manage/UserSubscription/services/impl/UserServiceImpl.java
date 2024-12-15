@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService {
         User fetchedUser = getUserById(id);
 
         fetchedUser.setUserName(user.getUserName());
-        fetchedUser.setPassword(user.getPassword());
+        fetchedUser.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(fetchedUser);
 
         return hidePassword(fetchedUser);
