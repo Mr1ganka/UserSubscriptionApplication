@@ -29,7 +29,7 @@ public class UserServiceImpl implements UserService {
     public String authenticate(String username, String password) {
         User user = userRepository.findByuserName(username);
         if (user != null && passwordEncoder.matches(password, user.getPassword())) {
-            return jwtUtil.generateToken(username); // Generate JWT on successful authentication
+            return jwtUtil.generateToken(username, user.getId().toString());
         }
         throw new RuntimeException("Invalid credentials");
     }
@@ -55,23 +55,32 @@ public class UserServiceImpl implements UserService {
     @Override
     public User deleteUserById(Long id) {
         User user = getUserById(id);
-        if (user != null)
-            userRepository.deleteById(id);
+        if (user == null)
+            return null;
+        userRepository.deleteById(id);
 
-        return user;
+        return hidePassword(user);
     }
 
     @Override
     public User updateUserById(Long id, User user) {
         User fetchedUser = getUserById(id);
 
-        if (fetchedUser != null) {
-            fetchedUser.setUserName(user.getUserName());
-            fetchedUser.setPassword(user.getPassword());
-            userRepository.save(fetchedUser);
-        }
+        if (fetchedUser == null)
+            return null;
 
-        return fetchedUser;
+        fetchedUser.setUserName(user.getUserName());
+        fetchedUser.setPassword(user.getPassword());
+        userRepository.save(fetchedUser);
+
+        return hidePassword(fetchedUser);
+    }
+
+    private User hidePassword(User user) {
+        if (user == null)
+            return null;
+        user.setPassword("*");
+        return user;
     }
 
 }

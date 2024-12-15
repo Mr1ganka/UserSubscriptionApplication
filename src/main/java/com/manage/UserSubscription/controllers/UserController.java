@@ -3,6 +3,7 @@ package com.manage.UserSubscription.controllers;
 import com.manage.UserSubscription.ApiResponse;
 import com.manage.UserSubscription.entities.User;
 import com.manage.UserSubscription.services.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +35,15 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity <ApiResponse<User>> getUser(@PathVariable Long userId) {
+    public ResponseEntity <ApiResponse<User>> getUser(@PathVariable Long userId, HttpServletRequest request) {
+        String token = request.getAttribute("userId").toString();
+        if (token == null)
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>(false, null, "JWT TOKEN NOT FOUND", HttpStatus.FORBIDDEN));
+
+        if (!token.equals(String.valueOf(userId))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>(false, null, "USER ID DOES NOT MATCH WITH THE TOKEN", HttpStatus.FORBIDDEN));
+        }
+
         User user = userService.getUserById(userId);
 
         if (user == null)
@@ -44,7 +53,15 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity <ApiResponse<User>> deleteUser(@PathVariable Long userId) {
+    public ResponseEntity <ApiResponse<User>> deleteUser(@PathVariable Long userId, HttpServletRequest request) {
+        String token = request.getAttribute("userId").toString();
+        if (token == null)
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>(false, null, "JWT TOKEN NOT FOUND", HttpStatus.FORBIDDEN));
+
+        if (!token.equals(String.valueOf(userId))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>(false, null, "USER ID DOES NOT MATCH WITH THE TOKEN", HttpStatus.FORBIDDEN));
+        }
+
         User user = userService.deleteUserById(userId);
 
         if (user == null)
@@ -54,7 +71,15 @@ public class UserController {
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity <ApiResponse<User>> updateUser(@PathVariable Long userId, @RequestBody User user) {
+    public ResponseEntity <ApiResponse<User>> updateUser(@PathVariable Long userId, @RequestBody User user, HttpServletRequest request) {
+        String token = request.getAttribute("userId").toString();
+        if (token == null)
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>(false, null, "JWT TOKEN NOT FOUND", HttpStatus.FORBIDDEN));
+
+        if (!token.equals(String.valueOf(user.getId()))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>(false, null, "USER ID DOES NOT MATCH WITH THE TOKEN", HttpStatus.FORBIDDEN));
+        }
+
         User fetchedUser = userService.updateUserById(userId, user);
 
         if (fetchedUser == null)

@@ -50,17 +50,29 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         subscription.setStartDate(date);
         subscription.setEndDate(date.plusDays(plan.getDuration()));
 
-        return subscriptionRepository.save(subscription);
+        subscriptionRepository.save(subscription);
+        return hidePassword(subscription);
     }
 
     @Override
     public Subscription getCurrentActiveSubscription(Long userId) {
-        return subscriptionRepository.findFirstByUserIdAndStatus(userId, SubscriptionStatus.ACTIVE);
+        Subscription sub = subscriptionRepository.findFirstByUserIdAndStatus(userId, SubscriptionStatus.ACTIVE);
+        return hidePassword(sub);
     }
 
     @Override
     public List<Subscription> getAllSubscriptionsForUser(Long userId) {
-        return subscriptionRepository.findByUserId(userId);
+        List<Subscription> subs = subscriptionRepository.findByUserId(userId);
+
+        for (Subscription sub : subs) {
+            User user = sub.getUser();
+
+            if (user != null) {
+                user.setPassword("*");
+
+            }
+        }
+        return subs;
     }
 
     @Override
@@ -72,41 +84,11 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
         updateSub.setEndDate(updateSub.getEndDate().plusDays(plan.getDuration()));
 
-        return subscriptionRepository.save(updateSub);
+        subscriptionRepository.save(updateSub);
+        return hidePassword(updateSub);
 
     }
 
-    @Override
-    public Subscription updateSubscriptionStatus(Long subId, SubscriptionDto subDto) {
-        Subscription updateSub = getSubscriptionById(subId);
-
-        if (subDto.getStatus() == null)
-            return null;
-
-        if (SubscriptionStatus.fromString(subDto.getStatus()) != null)
-            updateSub.setStatus(SubscriptionStatus.fromString(subDto.getStatus()));
-
-        return subscriptionRepository.save(updateSub);
-    }
-
-//    @Override
-//    public Subscription updateSubscription(Long subId, SubscriptionDto subDto) {
-//        Subscription updateSub = getSubscriptionById(subId);
-//        if (updateSub == null)
-//            return updateSub;
-//
-//        if (subDto.getEndDate() != null)
-//            updateSub.setEndDate(subDto.getEndDate());
-//
-//        if (subDto.getStartDate() != null)
-//            updateSub.setStartDate(subDto.getStartDate());
-//
-//        if (subDto.getStatus() != null && SubscriptionStatus.fromString(subDto.getStatus()) != null)
-//            updateSub.setStatus(SubscriptionStatus.fromString(subDto.getStatus()));
-//
-//        return subscriptionRepository.save(updateSub);
-//
-//    }
 
     @Override
     public Subscription cancelSubscription(Long userId) {
@@ -115,7 +97,15 @@ public class SubscriptionServiceImpl implements SubscriptionService {
             return null;
 
         sub.setStatus(SubscriptionStatus.CANCELLED);
-        return subscriptionRepository.save(sub);
+        subscriptionRepository.save(sub);
+        return hidePassword(sub);
+    }
+
+    public Subscription hidePassword(Subscription sub){
+        if (sub == null || sub.getUser() == null)
+            return sub;
+        sub.getUser().setPassword("*");
+        return sub;
     }
 
 }

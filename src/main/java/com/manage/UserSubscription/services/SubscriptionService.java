@@ -18,8 +18,6 @@ public interface SubscriptionService {
 
     Subscription updateSubscription(Long userId, SubscriptionDto updatedSub);
 
-    Subscription updateSubscriptionStatus(Long subId, SubscriptionDto dto);
-
     Subscription cancelSubscription(Long userId);
 
 }
