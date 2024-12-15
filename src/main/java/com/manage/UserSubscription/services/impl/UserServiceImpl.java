@@ -1,10 +1,13 @@
 package com.manage.UserSubscription.services.impl;
 
 import com.manage.UserSubscription.entities.User;
+import com.manage.UserSubscription.exceptions.DatabaseException;
 import com.manage.UserSubscription.repositories.UserRepository;
 import com.manage.UserSubscription.services.UserService;
 import com.manage.UserSubscription.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Retryable
 public class UserServiceImpl implements UserService {
 
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -36,6 +40,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
+    @Retryable(value = { DatabaseException.class }, maxAttempts = 3, backoff = @Backoff(delay = 2000))
     public User registerUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
@@ -53,6 +58,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Retryable(value = { DatabaseException.class }, maxAttempts = 3, backoff = @Backoff(delay = 2000))
     public User deleteUserById(Long id) {
         User user = getUserById(id);
         userRepository.deleteById(id);

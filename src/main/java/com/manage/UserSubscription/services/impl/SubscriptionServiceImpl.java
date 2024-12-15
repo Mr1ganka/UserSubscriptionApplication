@@ -5,17 +5,22 @@ import com.manage.UserSubscription.entities.Plan;
 import com.manage.UserSubscription.entities.Subscription;
 import com.manage.UserSubscription.entities.SubscriptionStatus;
 import com.manage.UserSubscription.entities.User;
+import com.manage.UserSubscription.exceptions.DatabaseException;
 import com.manage.UserSubscription.repositories.SubscriptionRepository;
 import com.manage.UserSubscription.services.PlanService;
 import com.manage.UserSubscription.services.SubscriptionService;
 import com.manage.UserSubscription.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@EnableRetry
 public class SubscriptionServiceImpl implements SubscriptionService {
     @Autowired
     private SubscriptionRepository subscriptionRepository;
@@ -32,6 +37,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
     @Override
+    @Retryable(value = { DatabaseException.class }, maxAttempts = 3, backoff = @Backoff(delay = 2000))
     public Subscription createSubscription(SubscriptionDto sub) {
         Subscription activeSub = getCurrentActiveSub(sub.getUserId());
         User user = userService.getUserById(sub.getUserId());
@@ -86,6 +92,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
     @Override
+    @Retryable(value = { DatabaseException.class }, maxAttempts = 3, backoff = @Backoff(delay = 2000))
     public Subscription updateSubscription(Long subId, SubscriptionDto subDto) {
         Subscription updateSub = getCurrentActiveSub(subId);
         Plan plan = planService.getPlanById(subDto.getPlanId());
@@ -105,6 +112,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
 
     @Override
+    @Retryable(value = { DatabaseException.class }, maxAttempts = 3, backoff = @Backoff(delay = 2000))
     public Subscription cancelSubscription(Long userId) {
         Subscription sub = getCurrentActiveSub(userId);
         if (sub == null)
