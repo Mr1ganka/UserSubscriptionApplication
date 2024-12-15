@@ -36,11 +36,15 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         Subscription activeSub = getCurrentActiveSub(sub.getUserId());
         User user = userService.getUserById(sub.getUserId());
         Plan plan = planService.getPlanById(sub.getPlanId());
-        SubscriptionStatus status = SubscriptionStatus.fromString(sub.getStatus());
 
-        if(activeSub != null || user == null || plan == null)
-            return null;
+        if(activeSub != null)
+            throw new RuntimeException("NO ACTIVE SUBSCRIPTION FOUND");
 
+        if(user == null)
+            throw new RuntimeException("N0 USER FOUND FOR ID: "+sub.getUserId());
+
+        if(plan == null)
+            throw new RuntimeException("NO PLAN FOUND FOR PLAN_ID: "+sub.getPlanId());
         LocalDateTime date = LocalDateTime.now();
 
         Subscription subscription = new Subscription();
@@ -57,6 +61,8 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     @Override
     public Subscription getCurrentActiveSubscription(Long userId) {
         Subscription sub = subscriptionRepository.findFirstByUserIdAndStatus(userId, SubscriptionStatus.ACTIVE);
+        if (sub == null)
+            throw new RuntimeException("NO ACTIVE SUBSCRIPTION FOUND FOR USER_ID: "+userId);
         return hidePassword(sub);
     }
 
@@ -83,9 +89,13 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     public Subscription updateSubscription(Long subId, SubscriptionDto subDto) {
         Subscription updateSub = getCurrentActiveSub(subId);
         Plan plan = planService.getPlanById(subDto.getPlanId());
-        if (updateSub == null || plan == null)
-            return updateSub;
 
+        if (updateSub == null)
+            throw new RuntimeException("NO ACTIVE SUBSCRIPTION FOUND");
+        if (plan == null)
+            throw new RuntimeException("NO PLAN FOUND FOR PLAN_ID: "+subDto.getPlanId());
+
+        updateSub.setPlan(plan);
         updateSub.setEndDate(updateSub.getEndDate().plusDays(plan.getDuration()));
 
         subscriptionRepository.save(updateSub);
@@ -98,7 +108,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     public Subscription cancelSubscription(Long userId) {
         Subscription sub = getCurrentActiveSub(userId);
         if (sub == null)
-            return null;
+            throw new RuntimeException("NO ACTIVE SUBSCRIPTION TO DELETE");
 
         sub.setStatus(SubscriptionStatus.CANCELLED);
         Subscription saved = subscriptionRepository.save(sub);

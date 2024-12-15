@@ -44,12 +44,12 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>(false, null, "USER ID DOES NOT MATCH WITH THE TOKEN", HttpStatus.FORBIDDEN));
         }
 
-        User user = userService.getUserById(userId);
-
-        if (user == null)
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, user, "USER NOT FOUND FOR ID: "+userId, HttpStatus.NOT_FOUND));
-
-        return ResponseEntity.status(HttpStatus.FOUND).body(new ApiResponse<>(true, user, "FETCHED", HttpStatus.FOUND));
+        try {
+            User user = userService.getUserById(userId);
+            return ResponseEntity.status(HttpStatus.FOUND).body(new ApiResponse<>(true, user, "FETCHED", HttpStatus.FOUND));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, null, e.getMessage(), HttpStatus.NOT_FOUND));
+        }
     }
 
     @DeleteMapping("/{userId}")
@@ -62,12 +62,12 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>(false, null, "USER ID DOES NOT MATCH WITH THE TOKEN", HttpStatus.FORBIDDEN));
         }
 
-        User user = userService.deleteUserById(userId);
-
-        if (user == null)
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, user, "USER NOT FOUND FOR ID: "+userId, HttpStatus.NOT_FOUND));
-
-        return ResponseEntity.ok(new ApiResponse<>(true, user, "DELETED", HttpStatus.OK));
+        try {
+            User user = userService.deleteUserById(userId);
+            return ResponseEntity.ok(new ApiResponse<>(true, user, "DELETED", HttpStatus.OK));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, null, e.getMessage(), HttpStatus.NOT_FOUND));
+        }
     }
 
     @PutMapping("/{userId}")
@@ -80,11 +80,12 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>(false, null, "USER ID DOES NOT MATCH WITH THE TOKEN", HttpStatus.FORBIDDEN));
         }
 
-        User fetchedUser = userService.updateUserById(userId, user);
+        try {
+            User fetchedUser = userService.updateUserById(userId, user);
+            return ResponseEntity.ok(new ApiResponse<>(true, fetchedUser, "USER UPDATED SUCCESSFULLY", HttpStatus.OK));
 
-        if (fetchedUser == null)
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, fetchedUser, "USER NOT FOUND FOR ID: "+userId, HttpStatus.NOT_FOUND));
-
-        return ResponseEntity.ok(new ApiResponse<>(true, fetchedUser, "USER UPDATED SUCCESSFULLY", HttpStatus.OK));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, null, e.getMessage(), HttpStatus.NOT_FOUND));
+        }
     }
 }

@@ -49,14 +49,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserById(Long id) {
         return userRepository.findById(id)
-                .orElse(null);
+                .orElseThrow(() -> new RuntimeException("COULD NOT FETCH USER FOR ID: " + id));
     }
 
     @Override
     public User deleteUserById(Long id) {
         User user = getUserById(id);
-        if (user == null)
-            return null;
         userRepository.deleteById(id);
 
         return hidePassword(user);
@@ -65,9 +63,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public User updateUserById(Long id, User user) {
         User fetchedUser = getUserById(id);
-
-        if (fetchedUser == null)
-            return null;
 
         fetchedUser.setUserName(user.getUserName());
         fetchedUser.setPassword(user.getPassword());

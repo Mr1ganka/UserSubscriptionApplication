@@ -20,7 +20,7 @@ public class PlanServiceImpl implements PlanService {
 
     @Override
     public Plan getPlanById(Long id) {
-        return planRepository.findById(id).orElse(null);
+        return planRepository.findById(id).orElseThrow(() -> new RuntimeException("PLAN NOT FOUND FOR ID: " + id));
     }
 
     @Override

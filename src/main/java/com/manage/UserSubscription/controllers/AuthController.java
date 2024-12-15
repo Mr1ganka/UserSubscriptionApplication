@@ -17,9 +17,11 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity <ApiResponse<String>> authenticateUser(@RequestBody LoginRequest request) {
-        String token = userService.authenticate(request.getUserName(), request.getPassword());
-        if (token != null)
+        try {
+            String token = userService.authenticate(request.getUserName(), request.getPassword());
             return ResponseEntity.ok(new ApiResponse<>(true, token, "AUTH TOKEN GENERATED", HttpStatus.CREATED));
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>(false, token, "AUTH TOKEN COULD NOT BE GENERATED", HttpStatus.INTERNAL_SERVER_ERROR));
+        }catch (RuntimeException e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse<>(false, null, "AUTH TOKEN NOT GENERATED :: "+e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
+        }
     }
 }

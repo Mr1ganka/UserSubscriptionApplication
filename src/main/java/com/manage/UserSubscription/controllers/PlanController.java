@@ -33,32 +33,33 @@ public class PlanController {
     }
 
     @GetMapping("/{planId}")
-    public ResponseEntity <ApiResponse<Plan>> getPlanById(@PathVariable Long planId){
-        Plan plan = planService.getPlanById(planId);
-
-        if (plan == null)
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, plan, "PLAN NOT FOUND", HttpStatus.NOT_FOUND));
-
-        return ResponseEntity.status(HttpStatus.FOUND).body(new ApiResponse<>(true, plan, "FETCHED", HttpStatus.FOUND));
+    public ResponseEntity <ApiResponse<Plan>> getPlanById(@PathVariable Long planId) {
+        try {
+            Plan plan = planService.getPlanById(planId);
+            return ResponseEntity.status(HttpStatus.FOUND).body(new ApiResponse<>(true, plan, "FETCHED", HttpStatus.FOUND));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, null, "PLAN NOT FOUND :: " + e.getMessage(), HttpStatus.NOT_FOUND));
+        }
     }
 
     @DeleteMapping("/{planId}")
     public ResponseEntity<ApiResponse<Plan>> deletePlan(@PathVariable Long planId) {
-        Plan plan = planService.deletePLanById(planId);
 
-        if (plan == null)
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, plan, "PLAN NOT FOUND", HttpStatus.NOT_FOUND));
-
-        return ResponseEntity.ok(new ApiResponse<>(true, plan, "DELETED", HttpStatus.OK));
+        try{
+            Plan plan = planService.deletePLanById(planId);
+            return ResponseEntity.ok(new ApiResponse<>(true, plan, "DELETED", HttpStatus.OK));
+        }catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, null, "PLAN NOT DELETED :: "+e.getMessage(), HttpStatus.NOT_FOUND));
+        }
     }
 
     @PutMapping("/{planId}")
     public ResponseEntity <ApiResponse<Plan>> updatePlan(@PathVariable Long planId, @RequestBody Plan plan) {
-        Plan fetchedPlan = planService.updatePlanById(planId, plan);
-
-        if (fetchedPlan == null)
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, fetchedPlan, "PLAN NOT FOUND FOR ID: "+planId, HttpStatus.NOT_FOUND));
-
-        return ResponseEntity.ok(new ApiResponse<>(true, fetchedPlan, "PLAN UPDATED SUCCESSFULLY", HttpStatus.CREATED));
+        try {
+            Plan fetchedPlan = planService.updatePlanById(planId, plan);
+            return ResponseEntity.ok(new ApiResponse<>(true, fetchedPlan, "PLAN UPDATED SUCCESSFULLY", HttpStatus.CREATED));
+        }catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, null, "PLAN NOT UPDATED: "+e.getMessage(), HttpStatus.NOT_FOUND));
+        }
     }
 }
