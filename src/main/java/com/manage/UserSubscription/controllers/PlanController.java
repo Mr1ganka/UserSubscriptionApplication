@@ -53,7 +53,7 @@ public class PlanController {
     }
 
     @PutMapping("/{planId}")
-    public ResponseEntity <ApiResponse<Plan>> updateUser(@PathVariable Long planId, @RequestBody Plan plan) {
+    public ResponseEntity <ApiResponse<Plan>> updatePlan(@PathVariable Long planId, @RequestBody Plan plan) {
         Plan fetchedPlan = planService.updatePlanById(planId, plan);
 
         if (fetchedPlan == null)
