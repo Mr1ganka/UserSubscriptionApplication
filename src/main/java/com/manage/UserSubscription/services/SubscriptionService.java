@@ -20,4 +20,7 @@ public interface SubscriptionService {
 
     Subscription cancelSubscription(Long userId);
 
+    List<Subscription> getAllSubscriptions();
+
+    Subscription updateSubStatus(Subscription sub);
 }

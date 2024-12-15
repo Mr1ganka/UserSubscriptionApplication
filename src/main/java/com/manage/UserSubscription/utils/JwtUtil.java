@@ -3,13 +3,16 @@ package com.manage.UserSubscription.utils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
 
 @Component
 public class JwtUtil {
-    private String SECRET_KEY = "your_secret_key"; // Use a strong secret key
+
+   @Value("secret.key")
+    private String SECRET_KEY;  // Use a strong secret key
 
     public String generateToken(String username, String userId) {
         return Jwts.builder()

@@ -90,15 +90,15 @@ public class SubscriptionController {
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<ApiResponse<Subscription>> updateSubscription(@RequestBody SubscriptionDto dto, @RequestParam Long id, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Subscription>> updateSubscription(@PathVariable Long userId, @RequestBody SubscriptionDto dto, HttpServletRequest request) {
         String token = request.getAttribute("userId").toString();
         if (token == null)
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>(false, null, "JWT TOKEN NOT FOUND", HttpStatus.FORBIDDEN));
 
-        if (!token.equals(String.valueOf(id))) {
+        if (!token.equals(String.valueOf(userId))) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse<>(false, null, "USER ID DOES NOT MATCH WITH THE TOKEN", HttpStatus.FORBIDDEN));
         }
-        Subscription sub = subscriptionService.updateSubscription(id, dto);
+        Subscription sub = subscriptionService.updateSubscription(userId, dto);
         if (sub == null)
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(false, sub, "ERROR ENCOUNTERED WHILE UPDATING SUBSCRIPTION", HttpStatus.NOT_FOUND));
         return ResponseEntity.ok(new ApiResponse<>(true, sub, "SUBSCRIPTION UPDATED", HttpStatus.FOUND));

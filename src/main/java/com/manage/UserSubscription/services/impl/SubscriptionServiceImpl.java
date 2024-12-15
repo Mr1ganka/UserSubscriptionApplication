@@ -33,7 +33,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     @Override
     public Subscription createSubscription(SubscriptionDto sub) {
-        Subscription activeSub = getCurrentActiveSubscription((sub.getUserId()));
+        Subscription activeSub = getCurrentActiveSub(sub.getUserId());
         User user = userService.getUserById(sub.getUserId());
         Plan plan = planService.getPlanById(sub.getPlanId());
         SubscriptionStatus status = SubscriptionStatus.fromString(sub.getStatus());
@@ -60,6 +60,10 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         return hidePassword(sub);
     }
 
+    protected Subscription getCurrentActiveSub(Long userId) {
+        return subscriptionRepository.findFirstByUserIdAndStatus(userId, SubscriptionStatus.ACTIVE);
+    }
+
     @Override
     public List<Subscription> getAllSubscriptionsForUser(Long userId) {
         List<Subscription> subs = subscriptionRepository.findByUserId(userId);
@@ -77,7 +81,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     @Override
     public Subscription updateSubscription(Long subId, SubscriptionDto subDto) {
-        Subscription updateSub = getCurrentActiveSubscription(subId);
+        Subscription updateSub = getCurrentActiveSub(subId);
         Plan plan = planService.getPlanById(subDto.getPlanId());
         if (updateSub == null || plan == null)
             return updateSub;
@@ -92,13 +96,23 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     @Override
     public Subscription cancelSubscription(Long userId) {
-        Subscription sub = getCurrentActiveSubscription(userId);
+        Subscription sub = getCurrentActiveSub(userId);
         if (sub == null)
             return null;
 
         sub.setStatus(SubscriptionStatus.CANCELLED);
-        subscriptionRepository.save(sub);
-        return hidePassword(sub);
+        Subscription saved = subscriptionRepository.save(sub);
+        return hidePassword(saved);
+    }
+
+    @Override
+    public List<Subscription> getAllSubscriptions() {
+        return subscriptionRepository.findAll();
+    }
+
+    @Override
+    public Subscription updateSubStatus(Subscription sub) {
+        return subscriptionRepository.save(sub);
     }
 
     public Subscription hidePassword(Subscription sub){
